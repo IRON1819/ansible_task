@@ -1,0 +1,24 @@
+---
+# tasks file for Nginx
+
+- name: Configure nginx
+  become: yes
+  block:
+    - name: Start nginx
+      service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Upload configuration of reverse proxy
+      template:
+        src: reverse_proxy.j2
+        dest: '/etc/nginx/sites-available/reverse_proxy'
+      notify: Restart nginx
+
+    - name: Create the symbolic link in site-enabled
+      file:
+        path: '/etc/nginx/sites-enabled/reverse_proxy'
+        state: link
+        src: '/etc/nginx/sites-available/reverse_proxy'
+

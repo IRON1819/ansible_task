@@ -1,0 +1,12 @@
+server {
+    listen 80;
+    server_name {{ server_ip }};
+
+
+
+
+    location /healthcheck {
+        include proxy_params;
+ 	proxy_pass http://unix:/run/gunicorn.sock;
+    }
+} 

@@ -1,0 +1,31 @@
+---
+# tasks file for Postgresql
+
+- name: Start postgresql
+  service:
+    name: postgresql
+    state: started
+    enabled: true
+
+- name: Configure postgresql
+  become: yes
+  become_user: postgres
+  block:  
+    - name: Create database
+      community.postgresql.postgresql_db:
+        name: "{{ db_name }}"
+
+    - name: Create role
+      community.postgresql.postgresql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_password }}"
+        db: "{{ db_name }}"
+
+    - name: Grant priveleges
+      community.postgresql.postgresql_privs:
+        db: "{{ db_name }}"
+        state: present
+        role: "{{ db_user }}"
+        type: schema
+        privs: "USAGE,CREATE"
+        objs: public

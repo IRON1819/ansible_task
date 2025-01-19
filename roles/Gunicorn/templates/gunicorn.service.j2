@@ -1,0 +1,11 @@
+[Unit]
+Description=gunicorn daemon
+Requires=gunicorn.socket
+After=network.target
+[Service]
+User={{ os_user }}
+WorkingDirectory={{ django_project_workdir }}
+ExecStart={{ venv_dir }}/bin/gunicorn --workers 5 --bind unix:/run/gunicorn.sock {{ django_project_name }}.wsgi:application
+
+[Install]
+WantedBy=multi-user.target

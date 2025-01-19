@@ -1,0 +1,61 @@
+---
+# tasks file for Django
+
+- name: make work directory for project
+  file:
+    state: directory
+    path: "{{ django_project_workdir }}"
+    owner: "{{ os_user }}"
+    group: "{{ os_user }}"
+
+- name: initialize django project
+  command:
+    cmd: "{{ venv_dir }}/bin/django-admin startproject {{ django_project_name }} {{ django_project_workdir }}"
+    creates: "{{ django_project_workdir }}/{{ django_project_name }}"
+
+- name: Configurate allowed hosts in settings.py
+  lineinfile:
+    path: '{{ django_project_workdir }}/{{ django_project_name }}/settings.py'
+    regexp: 'ALLOWED_HOSTS = \[.*\]'
+    line: "ALLOWED_HOSTS = ['*']"
+
+- name: Configuration the database connection in settings.py
+  replace:
+    path: '{{ django_project_workdir }}/{{ django_project_name }}/settings.py'
+    regexp: 'DATABASES = \{(?:[^{}#]*|\{[^{}#]*\})*\}'
+    replace: |
+      DATABASES = {
+        'default': {
+          'ENGINE': 'django.db.backends.postgresql', 
+          'NAME': '{{ db_name }}', # - Symbol to stop the replace module, cause it is not idempotent by default
+          'USER': '{{ db_user }}',
+          'PASSWORD': '{{ db_password }}',
+          'HOST': 'localhost',
+          'PORT': '',
+        }
+      }
+
+- name: Add import of endpoint in urls.py
+  lineinfile:
+    path: '{{ django_project_workdir }}/{{ django_project_name }}/urls.py'
+    insertafter: '^from django.urls import path'
+    line: 'from .views import healthcheck'
+
+- name: Add route of endpoint in urls.py
+  lineinfile:
+    path: '{{ django_project_workdir }}/{{ django_project_name }}/urls.py'
+    insertafter: 'urlpatterns = \['
+    line: 'path("healthcheck/", healthcheck),'
+
+- name: Copy views.py
+  copy:
+    src: views.py
+    dest: '{{ django_project_workdir }}/{{ django_project_name }}/views.py'
+
+
+- name: make and apply migrations
+  community.general.django_manage:
+    project_path: "{{ django_project_workdir }}"
+    command: migrate
+    virtualenv: "{{ venv_dir }}"
+

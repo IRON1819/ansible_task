@@ -1,0 +1,11 @@
+---
+
+os_user : client1
+server_ip : 192.168.1.139
+django_project_workdir : /home/client1/projects
+venv_dir : /home/client1/virtual_env
+
+
+
+
+
