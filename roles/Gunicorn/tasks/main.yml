@@ -2,6 +2,7 @@
 # tasks file for Gunicorn
 
 - name: Upload configuration of gunicorn socket and gunicorn daemon
+  become: yes
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
